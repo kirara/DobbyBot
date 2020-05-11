@@ -1,0 +1,8 @@
+[
+	[":coffee:", ["kafe","kávu","kafíčko","kávičku"]],
+	[":tea:", ["čaj","čajíček"]],
+	[":sake:", ["saké"]],
+	["Není zač.", ["ďakujem","děkuji","děkuju","díky","vďaka"]],
+	[":heart:", ["tě rád","tě ráda","tě má rád"]],
+	[":broken_heart:", ["nemám tě rád","nemám tě ráda","tě nemá rád"]]
+]

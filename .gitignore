@@ -102,3 +102,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+# config
+/config.json
+/package-lock.json
+/userTable.json
+/reactTable.json
+/replyTable.json
