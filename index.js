@@ -9,6 +9,11 @@ let replyTable;
 let replyRE;
 let reactTable;
 let reactRE;
+let addressTable;
+let addressRE;
+let address1;
+let address5;
+let addressReplies;
 
 function refreshReply() {
 	try {
@@ -28,14 +33,23 @@ function refreshReact() {
 	catch(e) { reactTable = []; reactRE = new RegExp('a^'); }
 }
 
+function refreshAddress() {
+	try {
+		delete require.cache[require.resolve('./addressTable.json')];
+		addressTable = require('./addressTable.json');
+		address1 = addressTable.map(a => a[0]);
+		address5 = addressTable.map(a => a[1]);
+		addressReplies = addressTable.map(a => a[2]);
+		addressRE = new RegExp('(?<=^|[\\s.,!?;])jsem\\s+(' + address1.join('|') + ')(?=[\\s.,!?;]|$)', 'ig');
+	}
+	catch(e) { addressTable = []; address1 = []; address2 = []; addressReplies = []; addressRE = new RegExp('a^'); }
+}
+
 refreshReply();
 refreshReact();
+refreshAddress();
 
-const addressRE = new RegExp('^(' + config.prefix.join('|') + ')(.*)$');
-
-const gender1 = ['pán', 'paní', 'soudruh', 'soudružka'];
-const gender5 = ['pane', 'paní', 'soudruhu', 'soudružko'];
-const genderRE = new RegExp('\\bjsem (' + gender1.join('|') + ')(?=[\\s.,!?]|$)', 'i');
+const prefixRE = new RegExp('^(' + config.prefix.join('|') + ')(.*)$');
 
 let userTable = new Map();
 fs.readFile('userTable.json', (err, data) => {
@@ -62,31 +76,24 @@ bot.on('message', msg => {
 		}
 	}
 
-	if ((parts = addressRE.exec(msg.content)) === null) return;
+	if ((parts = prefixRE.exec(msg.content)) === null) return;
 
 	const cmd = parts[2].trim();
 	const sex = userTable.get(msg.author.id) || 0;
 
-	console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ' ' + msg.author.username + (sex%2 ? '♀' : '♂') + ': ' + msg.content);
+	console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
 
 	if (cmd.startsWith('?')) {
-		const replies = [
-			['Ano, můj pane?', 'Čeho si žádáte, pane?', 'Čím může Dobby posloužit?'],
-			['Ano, má paní?', 'Čeho si žádáte, paní?', 'Čím může Dobby posloužit?'],
-			['Ano, soudruhu?', 'Co si přejete, soudruhu?', 'Jak posloužím socialismu?'],
-			['Ano, soudružko?', 'Co si přejete, soudružko?', 'Jak posloužím socialismu?']
-		];
-
-		msg.channel.send(replies[sex][Math.floor(Math.random() * replies[sex].length)]);
+		msg.channel.send(addressReplies[sex][Math.floor(Math.random() * addressReplies[sex].length)]);
 	}
 
 	let arg;
-	if ((arg = genderRE.exec(cmd)) !== null) {
-		let sexSet = gender1.indexOf(arg[1]);
-		if (sexSet === sex) msg.channel.send('Já vím ' + gender5[sexSet] + '.');
+	if ((arg = addressRE.exec(cmd)) !== null) {
+		let sexSet = address1.indexOf(arg[1]);
+		if (sexSet === sex) msg.channel.send('Já vím ' + address5[sexSet] + '.');
 		else {
 			userTable.set(msg.author.id, sexSet);
-			msg.channel.send('Dobře, ' + gender5[sexSet] + '.');
+			msg.channel.send('Dobře, ' + address5[sexSet] + '.');
 			fs.writeFile('userTable.json', JSON.stringify([...userTable]), err => {
 				if (err) console.log('There was an error updating userTable.json');
 				else console.log('File userTable.json updated successfully.');
@@ -108,6 +115,7 @@ bot.on('message', msg => {
 	if (cmd.search(/(?<=^|[\\s.,!?;])čti|uč se|studuj(?=[\\s.,!?;]|$)/i) !== -1) {
 		refreshReply();
 		refreshReact();
+		refreshAddress();
 		console.log('Table cache was refreshed.');
 		const replies = ['"Učit se, učit se, učit se" ~ Lenin', 'Kolik řečí znáš, tolikrát jsi soudruhem.'];
 		msg.channel.send(replies[Math.floor(Math.random() * replies.length)]);
