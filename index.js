@@ -6,12 +6,13 @@ const bot = new Discord.Client();
 const config = require('./config.json');
 
 let replyTable;
-let reactTable;
 let replyRE;
+let reactTable;
 let reactRE;
 
 function refreshReply() {
 	try {
+		delete require.cache[require.resolve('./replyTable.json')];
 		replyTable = require('./replyTable.json');
 		replyRE = new RegExp('(?<=^|[\\s.,!?;])(' + replyTable.flatMap(a => a[1]).join('|') + ')(?=[\\s.,!?;]|$)', 'ig');
 	}
@@ -20,6 +21,7 @@ function refreshReply() {
 
 function refreshReact() {
 	try {
+		delete require.cache[require.resolve('./reactTable.json')];
 		reactTable = require('./reactTable.json');
 		reactRE = new RegExp('(?<=^|[\\s.,!?;])(' + reactTable.flatMap(a => a[1]).join('|') + ')(?=[\\s.,!?;]|$)', 'ig');
 	}
@@ -103,7 +105,7 @@ bot.on('message', msg => {
 	}
 	if (replyOutput !== '') msg.channel.send(replyOutput);
 
-	if (cmd.search(/(?<=^|[\s.,!?;])čti|uč se|studuj(?=[\\s.,!?;]|$)/i) !== -1) {
+	if (cmd.search(/(?<=^|[\\s.,!?;])čti|uč se|studuj(?=[\\s.,!?;]|$)/i) !== -1) {
 		refreshReply();
 		refreshReact();
 		console.log('Table cache was refreshed.');
