@@ -40,7 +40,7 @@ function refreshAddress() {
 		address1 = addressTable.map(a => a[0]);
 		address5 = addressTable.map(a => a[1]);
 		addressReplies = addressTable.map(a => a[2]);
-		addressRE = new RegExp('(?<=^|[\\s.,!?;])jsem\\s+(' + address1.join('|') + ')(?=[\\s.,!?;]|$)', 'ig');
+		addressRE = new RegExp('(?<=^|[\\s.,!?;])jsem\\s+(' + address1.join('|') + ')(?=[\\s.,!?;]|$)', 'i');
 	}
 	catch(e) { addressTable = []; address1 = []; address2 = []; addressReplies = []; addressRE = new RegExp('a^'); }
 }
@@ -88,8 +88,8 @@ bot.on('message', msg => {
 	}
 
 	let arg;
-	if ((arg = addressRE.exec(cmd)) !== null) {
-		let sexSet = address1.indexOf(arg[1]);
+	if ((arg = cmd.match(addressRE)) !== null) {
+		let sexSet = address1.indexOf(arg[1].toLowerCase());
 		if (sexSet === sex) msg.channel.send('Já vím ' + address5[sexSet] + '.');
 		else {
 			userTable.set(msg.author.id, sexSet);
@@ -112,7 +112,7 @@ bot.on('message', msg => {
 	}
 	if (replyOutput !== '') msg.channel.send(replyOutput);
 
-	if (cmd.search(/(?<=^|[\\s.,!?;])čti|uč se|studuj(?=[\\s.,!?;]|$)/i) !== -1) {
+	if (cmd.search(/(?<=^|[\s.,!?;])(čti|uč se|studuj)(?=[\s.,!?;]|$)/i) !== -1) {
 		refreshReply();
 		refreshReact();
 		refreshAddress();

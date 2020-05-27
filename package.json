@@ -11,8 +11,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": {
-  	"name": "Kirara",
-  	"email": "vmarty89@gmail.com"
+    "name": "Kirara",
+    "email": "vmarty89@gmail.com"
   },
   "license": "Apache-2.0",
   "licenses": [
