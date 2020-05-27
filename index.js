@@ -1,4 +1,8 @@
 const fs = require('fs');
+const rp = require('request-promise');
+const cheerio = require('cheerio');
+const TurndownService = require('turndown');
+const turndown = new TurndownService();
 
 const Discord = require('discord.js');
 const bot = new Discord.Client();
@@ -119,6 +123,55 @@ bot.on('message', msg => {
 		console.log('Table cache was refreshed.');
 		const replies = ['"Učit se, učit se, učit se" ~ Lenin', 'Kolik řečí znáš, tolikrát jsi soudruhem.'];
 		msg.channel.send(replies[Math.floor(Math.random() * replies.length)]);
+	}
+
+	if ((arg = cmd.match(/(?<=^|[\s.,!?;])skloňuj ([^\s.,!?;]+)(?=[\s.,!?;]|$)/i)) !== null) {
+		const options = {
+			uri: 'https://m.prirucka.ujc.cas.cz/',
+			qs: {
+				id: arg[1]
+			},
+			transform: function (body) {
+					return cheerio.load(body);
+			}
+		};
+
+		rp(options)
+			.then(function ($) {
+				let out = '', tmp = [];
+				$('.para td').each((i,el) => { if (i>2) { let txt = $(el).text(); tmp.push(txt.replace(/(?<!^)\d/, '')); if (i%3 == 2) { out += tmp.join(' ') + "\n"; tmp = []; }}});
+				if (out) msg.channel.send("```" + out + "```");
+				else msg.channel.send(arg[1] + " jsem nenašel :frowning:");
+			})
+			.catch(function (err) {
+				console.log(err);
+			});
+	}
+
+	if ((arg = cmd.match(/(?<=^|[\s.,!?;])vysvětli (.+)$/i)) !== null) {
+		const options = {
+				uri: 'https://cs.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(arg[1].replace(' ', '_').replace('[zdroj?]', '')),
+				json: true
+		};
+
+		rp(options)
+			.then(function (repos) {
+				const embed = {
+					title: repos.titles.display,
+					url: repos.content_urls.desktop.page,
+					description: turndown.turndown(repos.extract_html),
+					footer: {
+				  	icon_url: "https://en.wikipedia.org/static/apple-touch/wikipedia.png",
+				  	text: "Wikipedia"
+					}
+				};
+				if (repos.thumbnail) embed['thumbnail'] = { url: repos.thumbnail.source };
+				msg.channel.send({embed: embed});
+			})
+			.catch(function (err) {
+				 msg.channel.send(arg[1] + " jsem nenašel :frowning:");
+				 console.log(err);
+			 });
 	}
 });
 
