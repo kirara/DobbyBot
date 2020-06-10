@@ -91,9 +91,9 @@ bot.on('message', msg => {
 		msg.channel.send(addressReplies[sex][Math.floor(Math.random() * addressReplies[sex].length)]);
 	}
 
-	let arg;
-	if ((arg = cmd.match(addressRE)) !== null) {
-		let sexSet = address1.indexOf(arg[1].toLowerCase());
+	let args;
+	if ((args = cmd.match(addressRE)) !== null) {
+		let sexSet = address1.indexOf(args[1].toLowerCase());
 		if (sexSet === sex) msg.channel.send('Já vím ' + address5[sexSet] + '.');
 		else {
 			userTable.set(msg.author.id, sexSet);
@@ -125,17 +125,18 @@ bot.on('message', msg => {
 		msg.channel.send(replies[Math.floor(Math.random() * replies.length)]);
 	}
 
-	if ((arg = cmd.match(/(?<=^|[\s.,!?;])skloňuj ([^\s.,!?;]+)(?=[\s.,!?;]|$)/i)) !== null) {
+	if ((args = cmd.match(/(?<=^|[\s.,!?;])skloňuj\s+([^.,!?;]+)(?=[.,!?;]|$)/i)) !== null) {
 		const options = {
 			uri: 'https://m.prirucka.ujc.cas.cz/',
 			qs: {
-				id: arg[1]
+				id: args[1]
 			},
 			transform: function (body) {
 					return cheerio.load(body);
 			}
 		};
 
+		let arg = args;
 		rp(options)
 			.then(function ($) {
 				let out = '', tmp = [];
@@ -148,30 +149,30 @@ bot.on('message', msg => {
 			});
 	}
 
-	if ((arg = cmd.match(/(?<=^|[\s.,!?;])vysvětli (.+)$/i)) !== null) {
+	if ((args = cmd.match(/(?<=^|[\s.,!?;])vysvětli (.+)$/i)) !== null) {
 		const options = {
-				uri: 'https://cs.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(arg[1].replace(' ', '_').replace('[zdroj?]', '')),
+				uri: 'https://cs.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(args[1].replace(' ', '_')),
 				json: true
 		};
 
+		let arg = args;
 		rp(options)
 			.then(function (repos) {
 				const embed = {
 					title: repos.titles.display,
-					url: repos.content_urls.desktop.page,
+					url: 'https://cs.wikipedia.org/wiki/' + encodeURIComponent(arg[1].replace(' ', '_')),
 					description: turndown.turndown(repos.extract_html),
 					footer: {
-				  	icon_url: "https://en.wikipedia.org/static/apple-touch/wikipedia.png",
-				  	text: "Wikipedia"
+						icon_url: "https://cs.wikipedia.org/static/apple-touch/wikipedia.png",
+						text: "Wikipedia"
 					}
 				};
 				if (repos.thumbnail) embed['thumbnail'] = { url: repos.thumbnail.source };
 				msg.channel.send({embed: embed});
 			})
 			.catch(function (err) {
-				 msg.channel.send(arg[1] + " jsem nenašel :frowning:");
-				 console.log(err);
-			 });
+				msg.channel.send(arg[1] + " jsem nenašel :frowning:");
+			});
 	}
 });
 
