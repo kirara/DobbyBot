@@ -64,6 +64,14 @@ fs.readFile('userTable.json', (err, data) => {
 	userTable = new Map(JSON.parse(data));
 });
 
+let mythTable = new Map();
+fs.readFile('mythTable.json', (err, data) => {
+	if (err) {
+		console.log('There was an error reading mythTable.json');
+		return;
+	}
+	mythTable = new Map(JSON.parse(data));
+});
 
 bot.on('ready', function() {
 	console.log('This bot is online!');
@@ -71,19 +79,39 @@ bot.on('ready', function() {
 
 bot.on('message', msg => {
 
-	let matches = msg.content.matchAll(reactRE);
-	for (const match of matches) {
-		const result = reactTable.find(row => row[1].includes(match[1].toLowerCase()));
-		if (result === null) console.log("Hledal jsem " + match[1].toLowerCase() + " a nenašel :(");
-		else {
-			msg.react(result[0]);
+	if (msg.author.id != msg.client.user.id) {
+		let matches = msg.content.matchAll(reactRE);
+		for (const match of matches) {
+			const result = reactTable.find(row => row[1].includes(match[1].toLowerCase()));
+			if (result === null) console.log("Hledal jsem " + match[1].toLowerCase() + " a nenašel :(");
+			else {
+				msg.react(result[0]);
+			}
+		}
+	}
+
+	const sex = userTable.get(msg.author.id) || 0;
+
+	let args;
+	if ((args = msg.content.match(/(?<=^|[\s.,!?;])([^\s.,!?;]+) je (taky )?mýtus(?=[\s.,!?;]|$)/i)) !== null) {
+		if (!['co','vše','všechno'].includes(args[1]) && msg.author.id != msg.client.user.id) {
+			console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
+			args[1] = args[1].toLowerCase();
+			if (mythTable.has(args[1])) mythTable.set(args[1], +mythTable.get(args[1])+1);
+			else {
+				mythTable.set(args[1], 1);
+			}
+			mythTable = new Map([...mythTable].sort((a, b) => Math.sign(b[1] - a[1])));
+			fs.writeFile('mythTable.json', JSON.stringify([...mythTable]), err => {
+				if (err) console.log('There was an error updating mythTable.json');
+				else console.log('File mythTable.json updated successfully.');
+			});
 		}
 	}
 
 	if ((parts = prefixRE.exec(msg.content)) === null) return;
 
 	const cmd = parts[2].trim();
-	const sex = userTable.get(msg.author.id) || 0;
 
 	console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
 
@@ -91,7 +119,6 @@ bot.on('message', msg => {
 		msg.channel.send(addressReplies[sex][Math.floor(Math.random() * addressReplies[sex].length)]);
 	}
 
-	let args;
 	if ((args = cmd.match(addressRE)) !== null) {
 		let sexSet = address1.indexOf(args[1].toLowerCase());
 		if (sexSet === sex) msg.channel.send('Já vím ' + address5[sexSet] + '.');
@@ -149,7 +176,7 @@ bot.on('message', msg => {
 			});
 	}
 
-	if ((args = cmd.match(/(?<=^|[\s.,!?;])vysvětli (.+)$/i)) !== null) {
+	if ((args = cmd.match(/(?<=^|[\s.,!?;])vysvětli\s+([^.,!?;]+)(?=[.,!?;]|$)/i)) !== null) {
 		const options = {
 				uri: 'https://cs.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(args[1].replace(' ', '_')),
 				json: true
@@ -173,6 +200,12 @@ bot.on('message', msg => {
 			.catch(function (err) {
 				msg.channel.send(arg[1] + " jsem nenašel :frowning:");
 			});
+	}
+
+	if (cmd.search(/(?<=^|[\s.,!?;])co (vše(chno)? )?je mýtus(?=[\s.,!?;]|$)/i) !== -1) {
+		const mythArray = [...mythTable.keys()];
+		const first = mythArray.slice(0, 1)[0];
+		msg.channel.send(first[0].toUpperCase() + first.slice(1) + ', ' + mythArray.slice(1, -1).join(', ') + ' a ' + mythArray.slice(-1) + ' je mýtus.');
 	}
 });
 
