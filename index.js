@@ -109,6 +109,20 @@ bot.on('message', msg => {
 		}
 	}
 
+	if ((args = msg.content.match(/(?<=^|[\s.,!?;])([^\s.,!?;]+) (už )?není mýtus(?=[\s.,!?;]|$)/i)) !== null) {
+		
+		console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
+		args[1] = args[1].toLowerCase();
+		if (mythTable.has(args[1])) mythTable.delete(args[1]);
+		
+		mythTable = new Map([...mythTable].sort((a, b) => Math.sign(b[1] - a[1])));
+		fs.writeFile('mythTable.json', JSON.stringify([...mythTable]), err => {
+			if (err) console.log('There was an error updating mythTable.json');
+			else console.log('File mythTable.json updated successfully.');
+		});
+		
+	}
+
 	if ((parts = prefixRE.exec(msg.content)) === null) return;
 
 	const cmd = parts[2].trim();
