@@ -18,6 +18,7 @@ let addressRE;
 let address1;
 let address5;
 let addressReplies;
+let eightBallTable;
 
 function refreshReply() {
 	try {
@@ -49,9 +50,18 @@ function refreshAddress() {
 	catch(e) { addressTable = []; address1 = []; address2 = []; addressReplies = []; addressRE = new RegExp('a^'); }
 }
 
+function refreshEightBall() {
+	try {
+		delete require.cache[require.resolve('./eightBall.json')];
+		eightBallTable = require('./eightBall.json');
+	}
+	catch(e) { eightBallTable = [];}
+}
+
 refreshReply();
 refreshReact();
 refreshAddress();
+refreshEightBall();
 
 const prefixRE = new RegExp('^(' + config.prefix.join('|') + ')(.*)$');
 
@@ -78,7 +88,6 @@ bot.on('ready', function() {
 });
 
 bot.on('message', msg => {
-
 	if (msg.author.id != msg.client.user.id) {
 		let matches = msg.content.matchAll(reactRE);
 		for (const match of matches) {
@@ -228,6 +237,9 @@ bot.on('message', msg => {
 				+ ' je mýtus.'
 			);
 		}
+	}
+	if (cmd.search(/(?<=^|[\s.,!?;])co myslíš(?=[\s.,!?;]|$)/i) !== -1) {
+		msg.channel.send(":fortune_cookie:" + eightBallTable[Math.floor(Math.random() * eightBallTable.length)]+":fortune_cookie:");
 	}
 });
 
