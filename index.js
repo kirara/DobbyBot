@@ -89,7 +89,7 @@ bot.on('ready', function() {
 });
 
 bot.on('message', msg => {
-	/*if (msg.author.id != msg.client.user.id) {
+	if (msg.author.id != msg.client.user.id) {
 		let matches = msg.content.matchAll(reactRE);
 		for (const match of matches) {
 			const result = reactTable.find(row => row[1].includes(match[1].toLowerCase()));
@@ -98,7 +98,7 @@ bot.on('message', msg => {
 				msg.react(result[0]);
 			}
 		}
-	}*/
+	}
 
 	const sex = userTable.get(msg.author.id) || 0;
 
