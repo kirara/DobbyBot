@@ -1,5 +1,6 @@
 const fs = require('fs');
 const rp = require('request-promise');
+const request = require("request");
 const cheerio = require('cheerio');
 const TurndownService = require('turndown');
 const turndown = new TurndownService();
@@ -240,6 +241,25 @@ bot.on('message', msg => {
 	}
 	if (cmd.search(/(?<=^|[\s.,!?;])co myslíš(?=[\s.,!?;]|$)/i) !== -1) {
 		msg.channel.send(":fortune_cookie:" + eightBallTable[Math.floor(Math.random() * eightBallTable.length)]+":fortune_cookie:");
+	}
+	if (cmd.search(/(?<=^|[\s.,!?;])(potřebuj(i|u) inspiraci|motivuj mně|nakopni mně)(?=[\s.,!?;]|$)/i) !== -1) {
+		request('http://inspirobot.me/api?generate=true', function (error, response, body) {
+     		if (!error && response.statusCode == 200) {
+        		msg.channel.send({
+          			embed: {
+            			color: 3447003,
+            			footer: {
+							icon_url: "https://inspirobot.me/website/images/inspirobot-dark-green.png",
+							text: "InspiroBot"
+						},
+            			image: {
+              				url: body
+            			}
+          			}
+        		});
+      		}
+	
+		});
 	}
 });
 
