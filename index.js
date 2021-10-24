@@ -56,7 +56,7 @@ function refreshEightBall() {
 		delete require.cache[require.resolve('./eightBall.json')];
 		eightBallTable = require('./eightBall.json');
 	}
-	catch(e) { eightBallTable = [];}
+	catch(e) { eightBallTable = []; }
 }
 
 refreshReply();
@@ -160,7 +160,7 @@ bot.on('message', msg => {
 		const result = replyTable.find(row => row[1].includes(match[1].toLowerCase()));
 		if (result === null) console.log("Hledal jsem " + match[1].toLowerCase() + " a nenašel :(");
 		else {
-			replyOutput += result[0];
+			replyOutput += result[0].replace('{random}', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
 		}
 	}
 	if (replyOutput !== '') msg.channel.send(replyOutput);
@@ -198,9 +198,10 @@ bot.on('message', msg => {
 			});
 	}
 
-	if ((args = cmd.match(/(?<=^|[\s.,!?;])vysvětli\s+([^.,!?;]+)(?=[.,!?;]|$)/i)) !== null) {
+	if ((args = cmd.match(/(?<=^|[\s.,!?;])(vysvětli|explain)\s+([^.,!?;]+)(?=[.,!?;]|$)/i)) !== null) {
+		let lang = (args[1] === 'explain' ? 'en' : 'cs');
 		const options = {
-			uri: 'https://cs.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(args[1].replace(' ', '_')),
+			uri: `https://${lang}.wikipedia.org/api/rest_v1/page/summary/` + encodeURIComponent(args[2].replace(' ', '_')),
 			json: true
 		};
 
@@ -209,10 +210,10 @@ bot.on('message', msg => {
 			.then(function (repos) {
 				const embed = {
 					title: repos.titles.display,
-					url: 'https://cs.wikipedia.org/wiki/' + encodeURIComponent(arg[1].replace(' ', '_')),
+					url: `https://${lang}.wikipedia.org/wiki/` + encodeURIComponent(arg[2].replace(' ', '_')),
 					description: turndown.turndown(repos.extract_html),
 					footer: {
-						icon_url: "https://cs.wikipedia.org/static/apple-touch/wikipedia.png",
+						icon_url: `https://${lang}.wikipedia.org/static/apple-touch/wikipedia.png`,
 						text: "Wikipedia"
 					}
 				};
@@ -220,7 +221,7 @@ bot.on('message', msg => {
 				msg.channel.send({embed: embed});
 			})
 			.catch(function (err) {
-				msg.channel.send(arg[1] + " jsem nenašel :frowning:");
+				msg.channel.send(arg[2] + " jsem nenašel :frowning:");
 			});
 	}
 
@@ -242,7 +243,7 @@ bot.on('message', msg => {
 	if (cmd.search(/(?<=^|[\s.,!?;])co myslíš(?=[\s.,!?;]|$)/i) !== -1) {
 		msg.channel.send(":fortune_cookie:" + eightBallTable[Math.floor(Math.random() * eightBallTable.length)]+":fortune_cookie:");
 	}
-	if (cmd.search(/(?<=^|[\s.,!?;])(potřebuj(i|u) inspiraci|motivuj mně|nakopni mně)(?=[\s.,!?;]|$)/i) !== -1) {
+	if (cmd.search(/(?<=^|[\s.,!?;])(potřebuj[eiu] (inspiraci|motivaci|nakopnout)|(inspiruj|motivuj|nakopni))(?=[\s.,!?;]|$)/i) !== -1) {
 		request('http://inspirobot.me/api?generate=true', function (error, response, body) {
      		if (!error && response.statusCode == 200) {
         		msg.channel.send({
