@@ -59,10 +59,14 @@ function refreshEightBall() {
 	catch(e) { eightBallTable = []; }
 }
 
-refreshReply();
-refreshReact();
-refreshAddress();
-refreshEightBall();
+function refreshAll() {
+	refreshReply();
+	refreshReact();
+	refreshAddress();
+	refreshEightBall();
+}
+
+refreshAll();
 
 const prefixRE = new RegExp('^(' + config.prefix.join('|') + ')(.*)$');
 
@@ -85,7 +89,7 @@ fs.readFile('mythTable.json', (err, data) => {
 });
 
 bot.on('ready', function() {
-	console.log('This bot is online!');
+	console.log(' ' + (new Date().toISOString().replace('T', ' | ').slice(0, -1)) + ' | INFO  | This bot is online!');
 });
 
 bot.on('message', msg => {
@@ -105,7 +109,7 @@ bot.on('message', msg => {
 	let args;
 	if ((args = msg.content.match(/(?<=^|[\s.,!?;])([^\s.,!?;]+)\s+je (taky )?mýtus(?=[\s.,!?;]|$)/i)) !== null) {
 		if (!['co','vše','všechno'].includes(args[1]) && msg.author.id != msg.client.user.id) {
-			console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
+			console.log(' ' + (new Date().toISOString().replace('T', ' | ').slice(0, -1)) + ' | INFO  | ' + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
 			args[1] = args[1].toLowerCase();
 			if (mythTable.has(args[1])) mythTable.set(args[1], +mythTable.get(args[1])+1);
 			else {
@@ -120,7 +124,7 @@ bot.on('message', msg => {
 	}
 
 	if ((args = msg.content.match(/(?<=^|[\s.,!?;])([^\s.,!?;]+)\s+(už )?není mýtus(?=[\s.,!?;]|$)/i)) !== null) {
-		console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
+		console.log(' ' + (new Date().toISOString().replace('T', ' | ').slice(0, -1)) + ' | INFO  | ' + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
 		args[1] = args[1].toLowerCase();
 		if (mythTable.has(args[1])) mythTable.delete(args[1]);
 
@@ -135,7 +139,7 @@ bot.on('message', msg => {
 
 	const cmd = parts[2].trim();
 
-	console.log((new Date().toLocaleTimeString()) + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
+	console.log(' ' + (new Date().toISOString().replace('T', ' | ').slice(0, -1)) + ' | INFO  | ' + (msg.guild !== null ? '@' + msg.guild.nameAcronym : '@DM') + ` ${msg.author.username}[${sex}]: ${msg.content}`);
 
 	if (cmd.startsWith('?')) {
 		msg.channel.send(addressReplies[sex][Math.floor(Math.random() * addressReplies[sex].length)]);
@@ -166,9 +170,7 @@ bot.on('message', msg => {
 	if (replyOutput !== '') msg.channel.send(replyOutput);
 
 	if (cmd.search(/(?<=^|[\s.,!?;])(čti|uč se|studuj)(?=[\s.,!?;]|$)/i) !== -1) {
-		refreshReply();
-		refreshReact();
-		refreshAddress();
+		refreshAll();
 		console.log('Table cache was refreshed.');
 		const replies = ['"Učit se, učit se, učit se" ~ Lenin', 'Kolik řečí znáš, tolikrát jsi soudruhem.'];
 		msg.channel.send(replies[Math.floor(Math.random() * replies.length)]);
