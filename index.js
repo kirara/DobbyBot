@@ -1,3 +1,4 @@
+require('core-js/stable');
 const fs = require('fs');
 const rp = require('request-promise');
 const request = require("request");
@@ -164,10 +165,10 @@ bot.on('message', msg => {
 		const result = replyTable.find(row => row[1].includes(match[1].toLowerCase()));
 		if (result === null) console.log("Hledal jsem " + match[1].toLowerCase() + " a nenašel :(");
 		else {
-			replyOutput += result[0].replace('{random}', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
+			replyOutput += result[0].replace('{random}', Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + " ";
 		}
 	}
-	if (replyOutput !== '') msg.channel.send(replyOutput);
+	if (replyOutput !== '') msg.channel.send(replyOutput.trim());
 
 	if (cmd.search(/(?<=^|[\s.,!?;])(čti|uč se|studuj)(?=[\s.,!?;]|$)/i) !== -1) {
 		refreshAll();
